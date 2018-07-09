@@ -13,6 +13,7 @@ namespace Prooph\EventStore\Adapter\MongoDb;
 
 use Assert\Assertion;
 use DateTimeInterface;
+use Doctrine\ODM\MongoDB\Mapping\Annotations\Date;
 use Iterator;
 use Prooph\Common\Messaging\Message;
 use Prooph\Common\Messaging\MessageConverter;
@@ -189,13 +190,19 @@ final class MongoDbEventStoreAdapter implements Adapter, CanHandleTransaction
     private function prepareEventData(StreamName $streamName, Message $e)
     {
         $eventArr = $this->messageConverter->convertToArray($e);
+        /** @var DateTimeInterface $created_at */
+        $created_at = $eventArr['created_at'];
 
         $eventData = [
             '_id'         => $eventArr['uuid'],
             'version'     => $eventArr['version'],
             'event_name'  => $eventArr['message_name'],
             'payload'     => $eventArr['payload'],
-            'created_at'  => $eventArr['created_at']->format('Y-m-d\TH:i:s.u'),
+            // we have to add the timezone offset because it is not stored in the timestamp
+            'created_at'  => new \MongoDate(
+                $created_at->getTimestamp() + $created_at->getOffset(),
+                $created_at->format('u')
+            ),
         ];
 
         foreach ($eventArr['metadata'] as $key => $value) {
