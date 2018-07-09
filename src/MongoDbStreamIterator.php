@@ -84,7 +84,7 @@ final class MongoDbStreamIterator implements Iterator
         return $this->messageFactory->createMessageFromArray($current['event_name'], [
             'uuid' => $current['_id'],
             'version' => (int) $current['version'],
-            'created_at' => $createdAt->toDateTime(),
+            'created_at' => \DateTimeImmutable::createFromMutable($createdAt->toDateTime()),
             'payload' => $current['payload'],
             'metadata' => $metadata
         ]);
