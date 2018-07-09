@@ -78,16 +78,13 @@ final class MongoDbStreamIterator implements Iterator
             }
         }
 
-        $createdAt = \DateTimeImmutable::createFromFormat(
-            'Y-m-d\TH:i:s.u',
-            $current['created_at'],
-            new \DateTimeZone('UTC')
-        );
+        /** @var \MongoDate $createdAt */
+        $createdAt = $current['created_at'];
 
         return $this->messageFactory->createMessageFromArray($current['event_name'], [
             'uuid' => $current['_id'],
             'version' => (int) $current['version'],
-            'created_at' => $createdAt,
+            'created_at' => $createdAt->toDateTime(),
             'payload' => $current['payload'],
             'metadata' => $metadata
         ]);
